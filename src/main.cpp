@@ -20,7 +20,7 @@ int main(int argc, char** argv)
   {
     cout  << "Usage : " << argv[0] << " [FILE_NAME]" << '\n'
           << "Not specifying a file will make the program fall back to the \
-              default text.";
+              default text." << '\n';
     text = default_text;
   }
   else
