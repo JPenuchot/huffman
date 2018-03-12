@@ -6,7 +6,3 @@ build/
 
 *.encoded
 *.decoded
-
-# Texts
-
-texts/
