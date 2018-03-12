@@ -33,16 +33,11 @@ int main(int argc, char** argv)
 
   //  On zip deux tableaux dans une liste de tuples
   //  pour trier les lettres plus facilement
-  array<tuple<char, float>, arrsize> tuplelist;
-  for(int i = 0; i < arrsize; i++) tuplelist[i] = { charlist[i], problist[i] };
-
-  //  On trie la liste de tuples en fonction du nombre
-  //  d'occurrence de chaque lettre du tuple
-  sort( tuplelist.begin(), tuplelist.end()
-      , [](auto const& a, auto const& b) { return get<1>(a) < get<1>(b); } );
+  vector<tuple<char, float>> tuple_list;
+  generate_tuple_list(text, tuple_list);
 
   //  Création de l'arbre
-  auto huffman_tree = generate_huffman_tree(tuplelist);
+  auto huffman_tree = generate_huffman_tree(tuple_list);
 
   //  Création de la map
   map<char, string> char_to_code;
@@ -57,4 +52,12 @@ int main(int argc, char** argv)
   string decoded_text;
   huffman_decode(huffman_tree, encoded_text, decoded_text);
   out_decoded << decoded_text << '\n';
+
+  //  Affichage des stats
+  cout  << "Original size : " << text.size() * 8 << " bits" << '\n'
+        << "Compressed size : " << encoded_text.size() << " bits" << '\n'
+        << "Compression ratio : " <<
+           (double)encoded_text.size() / (double)(text.size() * 8) << '\n'
+        << "Symbol count : " << tuple_list.size() << '\n'
+        << "Entropy : " << compute_entropy(tuple_list, char_to_code) << '\n';
 }

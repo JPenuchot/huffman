@@ -2,6 +2,7 @@
 
 #include <string>
 #include <array>
+#include <vector>
 
 using namespace std;
 
@@ -28,7 +29,7 @@ memory.";
 
 constexpr size_t arrsize = 27;
 
-array<char, arrsize> charlist =
+vector<char> charlist =
 {
     ' ', 'a', 'b', 'c', 'd', 'e', 'f',
     'g', 'h', 'i', 'j', 'k', 'l', 'm',
@@ -36,7 +37,7 @@ array<char, arrsize> charlist =
     'u', 'v', 'w', 'x', 'y', 'z'
 };
 
-array<float, arrsize> problist =
+vector<float> problist =
 {
     0.1835f, 0.0640f, 0.0064f, 0.0259f, 0.0260f, 0.1486f, 0.0078f,
     0.0083f, 0.0061f, 0.0591f, 0.0023f, 0.0001f, 0.0465f, 0.0245f,

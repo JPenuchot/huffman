@@ -1,17 +1,62 @@
 #pragma once
 
 #include <map>
+#include <vector>
+#include <set>
 
 #include "tree.hpp"
 
 using namespace std;
 
-template<size_t N>
-shared_ptr<tree<char>> generate_huffman_tree
-        ( array<tuple<char, float>, N>& couplelist )
+float compute_entropy ( vector<tuple<char, float>>& tuple_list
+                      , map<char, string>& encoding
+                      )
 {
-  //  On ne génère pas d'arbre de Huffman pour moins de 2 valeurs (stupide)
-  static_assert(N >= 2, "Man u serious ?");
+  float res = 0.f;
+  for(auto& elmt : tuple_list)
+    res += get<1>(elmt) * encoding[get<0>(elmt)].size();
+  return res;
+}
+
+void generate_tuple_list(string& text, vector<tuple<char, float>>& dest)
+{
+  //  On mémorise l'ensemble des caractères ET leurs nombres d'occurrences
+  // (std::map ne stocke pas la liste des clés)
+  map<char, unsigned int> occurrence_map;
+  set<char> char_set;
+  
+  //  Le nombre de caractères
+  unsigned int char_num = 0;
+
+  for(char c : text)
+  {
+    char_num++;
+
+    if(occurrence_map.count(c))
+      occurrence_map[c]++;
+    else
+    {
+      occurrence_map[c] = 1;
+      char_set.insert(c);
+    }
+  }
+
+  //  Ajout des caractères à la liste de tuples
+  for(auto c : char_set)
+    dest.push_back(make_tuple(c, (float)occurrence_map[c] / (float)char_num));
+
+  //  Tri des tuples
+  sort( dest.begin(), dest.end()
+      , [](auto const& a, auto const& b) { return get<1>(a) < get<1>(b); } );
+}
+
+shared_ptr<tree<char>> generate_huffman_tree
+        ( vector<tuple<char, float>>& couplelist )
+{
+  //  On vérifie la taille de la liste de tuples
+  //  (encodage inutile en-dessous ou égal à 2 caractères)
+  if(couplelist.size() <= 2)
+    throw runtime_error("rly");
 
   //  Initialisation des itérateurs
   auto current = couplelist.begin();
