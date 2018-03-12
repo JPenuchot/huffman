@@ -4,7 +4,7 @@
 #include <tuple>
 #include <map>
 
-#include "functions.hpp"
+#include "huffman.hpp"
 #include "content.hpp"
 #include "tree.hpp"
 
