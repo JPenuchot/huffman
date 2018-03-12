@@ -8,8 +8,9 @@
 
 using namespace std;
 
-float compute_entropy ( vector<tuple<char, float>>& tuple_list
-                      , map<char, string>& encoding
+template<typename T>
+float compute_entropy ( vector<tuple<T, float>>& tuple_list
+                      , map<T, string>& encoding
                       )
 {
   //  TODO : Correction
@@ -19,17 +20,18 @@ float compute_entropy ( vector<tuple<char, float>>& tuple_list
   return res;
 }
 
-void generate_tuple_list(string& text, vector<tuple<char, float>>& dest)
+template<typename T>
+void generate_tuple_list(vector<T>& text, vector<tuple<T, float>>& dest)
 {
   // We store both a character set *and* their occurrence counts in different
   // structures (std::map doesn't keep a track of the indexes)
-  map<char, unsigned int> occurrence_map;
-  set<char> char_set;
+  map<T, unsigned int> occurrence_map;
+  set<T> char_set;
   
   //  Character count
   unsigned int char_count = 0;
 
-  for(char c : text)
+  for(T& c : text)
   {
     char_count++;
 

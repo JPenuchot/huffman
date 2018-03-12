@@ -5,7 +5,6 @@
 #include <map>
 
 #include "huffman.hpp"
-#include "content.hpp"
 #include "tree.hpp"
 
 using namespace std;
@@ -13,22 +12,22 @@ using namespace std;
 int main(int argc, char** argv)
 {
   //  Reading the given file or falling back to the hard-coded text
-  string text;
+  vector<char> text;
   string outname = "default";
 
   if(argc < 2)
   {
-    cout  << "Usage : " << argv[0] << " [FILE_NAME]" << '\n'
+    cout  << "Usage : " << argv[0] << " [FILENAME]" << '\n'
           << "Not specifying a file will make the program fall back to the \
-              default text." << '\n';
-    text = default_text;
+default text." << '\n';
+    return 0;
   }
   else
   {
     ifstream text_ifs(argv[1]);
     outname = argv[1];
-    string str( (istreambuf_iterator<char>(text_ifs)),
-                 istreambuf_iterator<char>() );
+    vector<char> str( (istreambuf_iterator<char>(text_ifs)),
+                       istreambuf_iterator<char>() );
     text = str;
   }
 
