@@ -7,31 +7,36 @@
 using namespace std;
 
 /**
- * @brief      Représente un arbre (avec pas beaucoup de contrôles parce-que
- * franchement osef pour un TP)
+ * @brief      Represents a binary tree.
  *
- * @tparam     T     Type contenu dans l'arbre
+ * @tparam     T     Type of the elements stored in the leaves
  */
 template<typename T>
 struct tree
 {
-  // l et r contiennent chacun soit un pointeur vers un sous-arbre,
-  // soit un élément de type T.
+  // l & r contain either a pointer to a sub-tree or a T element.
 
-  //  std::variant est un équivalent de union mais syntaxiquement plus léger,
-  //  il permet aussi d'accéder à l'index du type contenu lors du runtime
-  //  (0 si T, 1 si shared_ptr<tree<T>>).
-  //  
-  //  Voir : http://en.cppreference.com/w/cpp/utility/variant
+  //  std::variant is a lighter alternative to C union types.
+  //    See doc here: http://en.cppreference.com/w/cpp/utility/variant
   variant<T, shared_ptr<tree<T>>> l;
   variant<T, shared_ptr<tree<T>>> r;
 };
 
 /**
- * @brief      Désigne la gauche ou la droite dans un arbre.
+ * @brief      Designates left or right side.
  */
-enum side { left, right };
+enum side { left = '1', right = '0' };
 
+/**
+ * @brief      Binary tree iterator
+ *
+ * @param[in]  tr       Root
+ * @param[in]  leaf     Code to run on a leaf
+ * @param[in]  node     Code to run on a node
+ * @param[in]  unstack  Code to run at unstack
+ *
+ * @tparam     T        Type of elements contained by the tree
+ */
 template<typename T>
 inline void iter( shared_ptr<tree<T>>     tr
                 , function<void(T, side)> leaf
@@ -39,16 +44,18 @@ inline void iter( shared_ptr<tree<T>>     tr
                 , function<void()>        unstack
                 )
 {
-  //  On vérifie le type contenu dans le std::variant
+  //  Checking contained typed
   if(tr->l.index() == 0)
+    //  Case of a leaf
     leaf(get<T>(tr->l), side::left);
   else
+    //  Case of a node
   { node(side::left);
     iter( get<shared_ptr<tree<T>>>(tr->l) , leaf, node , unstack ); }
-
+  
   unstack();
 
-  //  Idem, on vérifie le type contenu...
+  //  Idem, type checking...
   if (tr->r.index() == 0)
     leaf(get<T>(tr->r), side::right);
   else

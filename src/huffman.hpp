@@ -12,6 +12,7 @@ float compute_entropy ( vector<tuple<char, float>>& tuple_list
                       , map<char, string>& encoding
                       )
 {
+  //  TODO : Correction
   float res = 0.f;
   for(auto& elmt : tuple_list)
     res += get<1>(elmt) * encoding[get<0>(elmt)].size();
@@ -20,17 +21,17 @@ float compute_entropy ( vector<tuple<char, float>>& tuple_list
 
 void generate_tuple_list(string& text, vector<tuple<char, float>>& dest)
 {
-  //  On mémorise l'ensemble des caractères ET leurs nombres d'occurrences
-  // (std::map ne stocke pas la liste des clés)
+  // We store both a character set *and* their occurrence counts in different
+  // structures (std::map doesn't keep a track of the indexes)
   map<char, unsigned int> occurrence_map;
   set<char> char_set;
   
-  //  Le nombre de caractères
-  unsigned int char_num = 0;
+  //  Character count
+  unsigned int char_count = 0;
 
   for(char c : text)
   {
-    char_num++;
+    char_count++;
 
     if(occurrence_map.count(c))
       occurrence_map[c]++;
@@ -41,108 +42,107 @@ void generate_tuple_list(string& text, vector<tuple<char, float>>& dest)
     }
   }
 
-  //  Ajout des caractères à la liste de tuples
+  //  Adding characters with their occurrence rates to the tuple list
   for(auto c : char_set)
-    dest.push_back(make_tuple(c, (float)occurrence_map[c] / (float)char_num));
+    dest.push_back(make_tuple(c, (float)occurrence_map[c] / (float)char_count));
 
-  //  Tri des tuples
+  //  Sorting tuples using occurrence rates
   sort( dest.begin(), dest.end()
       , [](auto const& a, auto const& b) { return get<1>(a) < get<1>(b); } );
 }
 
-shared_ptr<tree<char>> generate_huffman_tree
-        ( vector<tuple<char, float>>& couplelist )
+template<typename T>
+shared_ptr<tree<T>> generate_huffman_tree
+        ( vector<tuple<T, float>>& couplelist )
 {
-  //  On vérifie la taille de la liste de tuples
-  //  (encodage inutile en-dessous ou égal à 2 caractères)
+  //  Checking the size of the tuple list
+  //  (encoding is useless when you have less than 2 symbols)
   if(couplelist.size() <= 2)
     throw runtime_error("rly");
 
-  //  Initialisation des itérateurs
+  //  Initializing iterators
   auto current = couplelist.begin();
   auto end = couplelist.end();
 
-  //  À la fin cette valeur sera le dernier noeud de l'arbre filiforme
-  shared_ptr<tree<char>> top = make_unique<tree<char>>();
+  //  At the end this will be the root of the tree
+  shared_ptr<tree<T>> root = make_unique<tree<T>>();
   
-  //  On crée le noeud du bas (et on initialise les booléens pour les types)
-  top->r = get<0>(*current++);
-  top->l = get<0>(*current++);
+  //  Creating the bottom node first
+  root->r = get<0>(*current++);
+  root->l = get<0>(*current++);
 
   while(current != end)  //  Iterating on the tuple<char, float> array
   {
-    //  On stocke l'ancienne racine
-    auto old_top(move(top));
-    //  On génère une nouvelle racine
-    top = make_shared<tree<char>>();
+    //  Storing the previous root
+    auto prev_root(move(root));
+    //  Generating a new root
+    root = make_shared<tree<T>>();
     
-    //  La valeur de gauche est la lettre que l'on lit
-    top->l = get<0>(*current);
-    //  La valeur de droite pointe vers l'ancienne racine
-    top->r = move(old_top);
+    //  Left value becomes the current character
+    root->l = get<0>(*current);
+    //  Right value is a pointer to the previous root
+    root->r = move(prev_root);
 
-    //  On incrémente l'itérateur
+    //  Incrementing iterator
     current++;
   }
 
-  return top;
+  return root;
 }
 
-void generate_huffman_map ( shared_ptr<tree<char>> top
-                          , map<char, string>& dest
+template<typename T>
+void generate_huffman_map ( shared_ptr<tree<T>> top
+                          , map<T, string>& dest
                           )
 {
   string current = "";
 
-  //  On parcourt l'arbre avec iter
-  iter<char>( top
-    //  Cas d'une feuille
-    , [&](char e, side s)
-    {
-      current.push_back(s == side::left ? '1' : '0');
-      dest[e] = current;
-    }
-
-    //  Cas d'un noeud
-    , [&](side s) { current.push_back(s == side::left ? '1' : '0'); }
-    
-    //  Dépilement (backtrack)
+  //  Iterating on the tree using the given iterator
+  iter<T>( top
+    //  Case of a leaf
+    , [&](T e, side s) { current.push_back(s); dest[e] = current; }
+    //  Case of a node
+    , [&](side s) { current.push_back(s); }
+    //  Unstack (backtrack)
     , [&]() { current.pop_back(); }
   );
 }
 
-void huffman_decode(shared_ptr<tree<char>> root, string& src, string& dest)
+template<typename T>
+void huffman_decode(shared_ptr<tree<T>> root, string& src, string& dest)
 {
-  //  On démarre de la racine pour le parcours (évident)
+  //  We start from the root (obvious)
   auto current = root;
 
-  for(char c : src)
+  for(T& c : src)
   {
-    if(c == '0')
+    if(c == side::right)
     {
-      //  On check le type contenu à droite
-      //  voir : http://en.cppreference.com/w/cpp/utility/variant/index
+      //  Checking right child's type (leaf or node)
+      //    See doc : http://en.cppreference.com/w/cpp/utility/variant/index
       if(current->r.index() == 0)
-      //  Si c'est une feuille, on ajoute la lettre qu'elle contient
-      //  au résultat et on repart de la racine.
+      //  In case if a leaf we add its content to the result then start over
+      //  from the root.
       {
-        dest.push_back(get<char>(current->r));
+        dest.push_back(get<T>(current->r));
         current = root;
       }
       else
-        //  Sinon, on descend.
-        current = get<shared_ptr<tree<char>>>(current->r);
+        //  Or else, we pursue.
+        current = get<shared_ptr<tree<T>>>(current->r);
     }
-    else if (c == '1')
+    else if (c == side::left)
     {
-      //  Même chose que pour '0' mais à gauche
+      //  Same as before.
       if(current->l.index() == 0)
       {
-        dest.push_back(get<char>(current->l));
+        dest.push_back(get<T>(current->l));
         current = root;
       }
       else
-        current = get<shared_ptr<tree<char>>>(current->l);
+        current = get<shared_ptr<tree<T>>>(current->l);
     }
+    else
+      throw runtime_error("Not an encoded string.");
   }
 }
