@@ -4,5 +4,5 @@ build/
 
 # Generated files
 
-*.encode
-*.decode
+*.encoded
+*.decoded
