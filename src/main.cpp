@@ -17,7 +17,12 @@ int main(int argc, char** argv)
   string outname = "default";
 
   if(argc < 2)
+  {
+    cout  << "Usage : " << argv[0] << " [FILE_NAME]" << '\n'
+          << "Not specifying a file will make the program fall back to the \
+              default text.";
     text = default_text;
+  }
   else
   {
     ifstream text_ifs(argv[1]);

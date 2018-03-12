@@ -10,6 +10,8 @@ tree.hpp    - La structure d'arbre sur laquelle repose le programme (inclut
 huffman.hpp - Les fonctions de génération d'encodeur et de décodage
 ```
 
+Le programme se compile avec le script `build.sh` (requiert CMake) et se lance en debug ou en release avec `./build/{debug|release}/prog [FILE_NAME]`. Si le nom de fichier n'est pas spécifié alors il utilise le texte en exemple du TP.
+
 ## Codage de Huffmann
 
 Pour la création de l'arbre et de la map pour la correspondance char -> code, voir dans `huffman.hpp`.
